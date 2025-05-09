@@ -3,4 +3,5 @@ pub mod reader;
 
 fn main() {
     let path = "src/data/test.csv";
+    reader(path).unwrap();
 }
