@@ -5,9 +5,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let records = reader::reader(path)?;
     
     // Print first 2 records for verification
-    println!("Loaded {} records", records.len());
     for (i, record) in records.iter().take(2).enumerate() {
-        println!("Record {}: {:?}", i + 1, record);
+        println!("Record {}:", i + 1);
+        println!("  County: {}", record.county);
+        println!("  Clinical Panel: {}", record.clinical_panel);
+        // Access other fields you need...
     }
     
     Ok(())
