@@ -1,7 +1,7 @@
 mod reader;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = "src/data/test.csv";
+    let path = "src/data/train.csv";
     let records = reader::reader(path)?;
     
     // Print first 2 records for verification

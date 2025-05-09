@@ -4,13 +4,13 @@ use std::error::Error;
 #[derive(Debug, Deserialize)]
 pub struct DataRecord {
     #[serde(rename = "Master_Index")]
-    master_index: i32,
+    master_index: String,
     #[serde(rename = "County")]
     county: String,
     #[serde(rename = "Health level")]
     health_level: String,
     #[serde(rename = "Years of Experience")]
-    years_experience: i32,
+    years_experience: f64,
     #[serde(rename = "Prompt")]
     prompt: String,
     #[serde(rename = "Nursing Competency")]
@@ -20,7 +20,7 @@ pub struct DataRecord {
     #[serde(rename = "Clinician")]
     clinician: String,
     #[serde(rename = "GPT4.0")]
-    gpt4_0: String,  // Changed to valid Rust field name
+    gpt4_0: String,
     #[serde(rename = "LLAMA")]
     llama: String,
     #[serde(rename = "GEMINI")]
