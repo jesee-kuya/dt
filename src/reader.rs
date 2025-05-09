@@ -33,12 +33,19 @@ pub struct DataRecord {
 pub fn reader(path: &str) -> Result<Vec<DataRecord>, Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(true)
-        .from_path(path)?;
+        .trim(csv::Trim::All)
+        .flexible(true)
+        .from_path(path)
+        .map_err(|e| format!("Failed to read {}: {}", path, e))?;
 
     let mut records = Vec::new();
     for result in rdr.deserialize() {
-        let record: DataRecord = result?;
+        let record: DataRecord = result.map_err(|e| format!("CSV parsing error: {}", e))?;
         records.push(record);
+    }
+
+    if records.is_empty() {
+        return Err("No records found in CSV file".into());
     }
 
     Ok(records)
