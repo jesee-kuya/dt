@@ -1,17 +1,34 @@
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::io::BufReader;
-use std::path::Path;
+use serde::Deserialize;
+use std::error::Error;
 
-pub fn reader(path: &str) -> io::Result<()> {
-    let path = Path::new(path);
-    let file = File::open(&path)?;
-    let reader = BufReader::new(file);
+#[derive(Debug, Deserialize)]
+pub struct DataRecord {
+    #[serde(rename = "Master_Index")]
+    master_index: i32,
+    #[serde(rename = "County")]
+    county: String,
+    #[serde(rename = "Health level")]
+    health_level: String,
+    #[serde(rename = "Years of Experience")]
+    years_experience: i32,
+    #[serde(rename = "Prompt")]
+    prompt: String,
+    #[serde(rename = "Nursing Competency")]
+    nursing_competency: String,
+    #[serde(rename = "Clinical Panel")]
+    clinical_panel: String,
+}
 
-    for line in reader.lines() {
-        let line = line?;
-        println!("{}", line);
+pub fn reader(path: &str) -> Result<Vec<DataRecord>, Box<dyn Error>> {
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(true)
+        .from_path(path)?;
+
+    let mut records = Vec::new();
+    for result in rdr.deserialize() {
+        let record: DataRecord = result?;
+        records.push(record);
     }
 
-    Ok(())
+    Ok(records)
 }
