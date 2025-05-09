@@ -5,29 +5,29 @@ use std::error::Error;
 #[derive(Debug, Deserialize)]
 pub struct DataRecord {
     #[serde(rename = "Master_Index")]
-    pub master_index: String,
+    pub master_index: Option<String>,
     #[serde(rename = "County")]
-    pub county: String,
+    pub county: Option<String>,
     #[serde(rename = "Health level")]
-    pub health_level: String,
+    pub health_level: Option<String>,
     #[serde(rename = "Years of Experience")]
     pub years_experience: f64,
     #[serde(rename = "Prompt")]
-    pub prompt: String,
+    pub prompt: Option<String>,
     #[serde(rename = "Nursing Competency")]
-    pub nursing_competency: String,
+    pub nursing_competency: Option<String>,
     #[serde(rename = "Clinical Panel")]
-    pub clinical_panel: String,
+    pub clinical_panel: Option<String>,
     #[serde(rename = "Clinician")]
-    pub clinician: String,
+    pub clinician: Option<String>,
     #[serde(rename = "GPT4.0")]
-    pub gpt4_0: String,
+    pub gpt4_0: Option<String>,
     #[serde(rename = "LLAMA")]
-    pub llama: String,
+    pub llama: Option<String>,
     #[serde(rename = "GEMINI")]
-    pub gemini: String,
+    pub gemini: Option<String>,
     #[serde(rename = "DDX SNOMED")]
-    pub ddx_snomed: String,
+    pub ddx_snomed: Option<String>,
 }
 
 pub fn reader(path: &str) -> Result<Vec<DataRecord>, Box<dyn Error>> {
