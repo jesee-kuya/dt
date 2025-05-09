@@ -1,3 +1,6 @@
+use crate::reader::reader;
+pub mod reader;
+
 fn main() {
-    println!("Hello, world!");
+    let path = "src/data/test.csv";
 }
