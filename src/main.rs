@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let records = reader::reader(path)?;
     
     println!("\nSuccessfully loaded {} records", records.len());
-    println!("First record clinical panel: {}", records[0].clinical_panel);
+    println!("First record clinical panel: {:?}", records[0].clinical_panel);
     
     Ok(())
 }
