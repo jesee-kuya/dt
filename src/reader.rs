@@ -17,6 +17,16 @@ pub struct DataRecord {
     nursing_competency: String,
     #[serde(rename = "Clinical Panel")]
     clinical_panel: String,
+    #[serde(rename = "Clinician")]
+    clinician: String,
+    #[serde(rename = "GPT4.0")]
+    gpt4_0: String,  // Changed to valid Rust field name
+    #[serde(rename = "LLAMA")]
+    llama: String,
+    #[serde(rename = "GEMINI")]
+    gemini: String,
+    #[serde(rename = "DDX SNOMED")]
+    ddx_snomed: String,
 }
 
 pub fn reader(path: &str) -> Result<Vec<DataRecord>, Box<dyn Error>> {
