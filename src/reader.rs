@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::error::Error;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct DataRecord {
     #[serde(rename = "Master_Index")]
