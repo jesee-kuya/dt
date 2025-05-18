@@ -24,13 +24,24 @@ struct PredictionRecord {
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Load training data
-    let train_path = "/home/jkuya/dt/data/train.csv";
-    println!("Loading training data from: {}", train_path);
-    let records = reader::reader(train_path)?;
-    println!("Loaded {} training records", records.len());
+    let train_paths = [
+        "/home/jkuya/dt/data/train.csv",
+        "/home/jkuya/dt/data/train_raw.csv"
+    ];
+
+   let mut all_records = Vec::new();
+
+   for path in &train_paths {
+    println!("Loading training data from: {}", path);
+    let mut records = reader::reader(path)?;
+    println!("Loaded {} records from {}", records.len(), path);
+    all_records.append(&mut records);
+    }
+
+    println!("Total training records after merging: {}", all_records.len());
     
     // Train the model
-    let predictor = MultiTargetPredictor::build(&records);
+    let predictor = MultiTargetPredictor::build(&all_records);
     println!("Trained multi-target predictor");
     
     // Example prediction
