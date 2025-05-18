@@ -38,6 +38,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     all_records.append(&mut records);
     }
 
+    // In main.rs, after loading all records
+    all_records.sort_by(|a, b| a.master_index.cmp(&b.master_index));
+    all_records.dedup_by(|a, b| a.master_index == b.master_index);
+    println!("Unique training records after deduplication: {}", all_records.len());
+
     println!("Total training records after merging: {}", all_records.len());
     
     // Train the model
