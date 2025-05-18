@@ -1,7 +1,7 @@
 mod reader;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = "data/test.csv"; // Changed path
+    let path = "data/train.csv"; 
     println!("Attempting to read from: {}", path);
     
     let records = reader::reader(path)?;
