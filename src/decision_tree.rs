@@ -23,7 +23,6 @@ pub enum TargetField {
 
 pub struct DecisionTree {
     root: TreeNode,
-    target: TargetField,
 }
 
 #[derive(Debug, Default)]
@@ -38,7 +37,7 @@ pub struct Prediction {
 impl DecisionTree {
     pub fn build(records: &[DataRecord], target: TargetField) -> Self {
         let root = Self::build_tree(records, target);
-        DecisionTree { root, target }
+        DecisionTree { root }
     }
 
     fn build_tree(records: &[DataRecord], target: TargetField) -> TreeNode {
