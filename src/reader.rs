@@ -11,7 +11,7 @@ pub struct DataRecord {
     #[serde(rename = "Health level")]
     pub health_level: Option<String>,
     #[serde(rename = "Years of Experience")]
-    pub years_experience: f64,
+    pub years_experience: Option<String>,
     #[serde(rename = "Prompt")]
     pub prompt: Option<String>,
     #[serde(rename = "Nursing Competency")]
