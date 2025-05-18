@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::error::Error;
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct DataRecord {
     #[serde(rename = "Master_Index")]
     pub master_index: Option<String>,
