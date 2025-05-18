@@ -52,7 +52,14 @@ pub fn reader(path: &str) -> Result<Vec<DataRecord>, Box<dyn Error>> {
 
     let mut records = Vec::new();
     for result in rdr.deserialize() {
-        let record: DataRecord = result.map_err(|e| format!("CSV parsing error: {}", e))?;
+        let mut record: DataRecord = result.map_err(|e| format!("CSV parsing error: {}", e))?;
+        
+        // Basic validation
+        if record.clinician.is_none() && record.gpt4_0.is_none() {
+            eprintln!("Warning: Record with master_index {:?} has no target values", 
+                record.master_index);
+        }
+        
         records.push(record);
     }
 
