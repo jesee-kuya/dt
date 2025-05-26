@@ -1,10 +1,12 @@
+// src/main.rs
+
 mod reader;
 mod decision_tree;
 
-use crate::reader::DataRecord;
+use crate::reader::{read_records, DataRecord};
 use decision_tree::MultiTargetPredictor;
 use serde::Serialize;
-use std::error::Error;
+use std::{error::Error, fs::File, path::Path};
 
 #[derive(Debug, Serialize)]
 struct PredictionRecord {
@@ -23,72 +25,113 @@ struct PredictionRecord {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Load training data
-    let train_paths = [
-        "/home/jkuya/dt/data/train.csv",
-        "/home/jkuya/dt/data/train_raw.csv"
-    ];
+    // 1. Load & dedupe training data
+    let train_files = ["data/train.csv", "data/train_raw.csv"];
+    let mut records = load_and_dedup(&train_files)?;
+    println!("Unique training records: {}", records.len());
 
-   let mut all_records = Vec::new();
+    // 2. Preprocess
+    preprocess(&mut records);
+    println!("Records after preprocessing: {}", records.len());
 
-   for path in &train_paths {
-    println!("Loading training data from: {}", path);
-    let mut records = reader::reader(path)?;
-    println!("Loaded {} records from {}", records.len(), path);
-    all_records.append(&mut records);
-    }
-
-    // In main.rs, after loading all records
-    all_records.sort_by(|a, b| a.master_index.cmp(&b.master_index));
-    all_records.dedup_by(|a, b| a.master_index == b.master_index);
-    println!("Unique training records after deduplication: {}", all_records.len());
-
-    println!("Total training records after merging: {}", all_records.len());
-    
-    // Train the model
-    let predictor = MultiTargetPredictor::build(&all_records);
+    // 3. Train
+    let predictor = MultiTargetPredictor::build(&records);
     println!("Trained multi-target predictor");
-    
-    // Example prediction
-    let test_record = DataRecord {
-        county: Some("Example County".to_string()),
-        health_level: Some("High".to_string()),
-        years_experience: Some("5".to_string()),
-        clinical_panel: Some("Panel A".to_string()),
+
+    // 4. Demo
+    demo(&predictor);
+
+    // 5. Predict on test set
+    write_predictions(&predictor, Path::new("data/test.csv"), Path::new("predictions.csv"))?;
+    println!("All done.");
+
+    Ok(())
+}
+
+fn load_and_dedup<P: AsRef<Path>>(files: &[P]) -> Result<Vec<DataRecord>, Box<dyn Error>> {
+    let mut all: Vec<DataRecord> = files
+        .iter()
+        .flat_map(|p| {
+            let p = p.as_ref();
+            println!("Loading {}", p.display());
+            match read_records(p) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("  → failed {}: {}", p.display(), e);
+                    Vec::new()
+                }
+            }
+        })
+        .collect();
+
+    all.sort_by(|a, b| a.master_index.cmp(&b.master_index));
+    all.dedup_by(|a, b| a.master_index == b.master_index);
+    Ok(all)
+}
+
+fn preprocess(records: &mut [DataRecord]) {
+    for rec in records.iter_mut() {
+        if rec.years_experience.is_none() {
+            rec.years_experience = Some("unknown".into());
+        }
+        if let Some(s) = rec.county.take() {
+            rec.county = Some(s.to_lowercase());
+        }
+        if let Some(s) = rec.health_level.take() {
+            rec.health_level = Some(s.to_lowercase());
+        }
+        if let Some(s) = rec.clinical_panel.take() {
+            rec.clinical_panel = Some(s.to_lowercase());
+        }
+        if let Some(s) = rec.years_experience.take() {
+            rec.years_experience = Some(s.to_lowercase());
+        }
+    }
+}
+
+fn demo(p: &MultiTargetPredictor) {
+    let example = DataRecord {
+        county: Some("Example County".into()),
+        health_level: Some("High".into()),
+        years_experience: Some("5".into()),
+        clinical_panel: Some("Panel A".into()),
         ..Default::default()
     };
-    
-    let prediction = predictor.predict(&test_record);
+    let pred = p.predict(&example);
     println!("\nExample Predictions:");
-    println!("Clinician: {:?}", prediction.clinician);
-    println!("GPT4.0: {:?}", prediction.gpt4_0);
-    println!("LLAMA: {:?}", prediction.llama);
-    println!("GEMINI: {:?}", prediction.gemini);
-    println!("DDX SNOMED: {:?}", prediction.ddx_snomed);
-    
-    // Load test data and generate predictions
-    let test_path = "/home/jkuya/dt/data/test.csv";
-    println!("\nLoading test data from: {}", test_path);
-    let test_records = reader::reader(test_path)?;
-    println!("Loaded {} test records", test_records.len());
-    
-    // Write predictions to CSV
-    let mut wtr = csv::Writer::from_path("predictions.csv")?;
-    for test_record in test_records {
-        let prediction = predictor.predict(&test_record);
-        let master_index = test_record.master_index.unwrap_or_else(|| "N/A".to_string());
-        let pred_record = PredictionRecord {
-            master_index,
-            clinician: prediction.clinician,
-            gpt4_0: prediction.gpt4_0,
-            llama: prediction.llama,
-            gemini: prediction.gemini,
-            ddx_snomed: prediction.ddx_snomed,
+    println!("  Clinician: {:?}", pred.clinician);
+    println!("  GPT4.0:    {:?}", pred.gpt4_0);
+    println!("  LLAMA:     {:?}", pred.llama);
+    println!("  GEMINI:    {:?}", pred.gemini);
+    println!("  SNOMED:    {:?}", pred.ddx_snomed);
+}
+
+fn write_predictions<P: AsRef<Path>>(
+    predictor: &MultiTargetPredictor,
+    input: P,
+    output: P,
+) -> Result<(), Box<dyn Error>> {
+    println!("\nLoading test data from {}", input.as_ref().display());
+    let tests = read_records(&input)?;
+    println!("Loaded {} test records", tests.len());
+
+    let file = File::create(output.as_ref())?;
+    let mut wtr = csv::Writer::from_writer(file);
+
+    for rec in tests {
+        let pred = predictor.predict(&rec);
+        let idx = rec.master_index.unwrap_or_else(|| "N/A".into());
+        let row = PredictionRecord {
+            master_index: idx,
+            clinician: pred.clinician,
+            gpt4_0: pred.gpt4_0,
+            llama: pred.llama,
+            gemini: pred.gemini,
+            ddx_snomed: pred.ddx_snomed,
         };
-        wtr.serialize(&pred_record)?;
+        wtr.serialize(&row)?;
     }
     wtr.flush()?;
-    println!("\nPredictions saved to predictions.csv");
-    
+    println!("Predictions saved to {}", output.as_ref().display());
     Ok(())
 }
