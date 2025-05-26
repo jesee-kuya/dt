@@ -1,5 +1,3 @@
-// src/reader.rs
-
 use serde::Deserialize;
 use std::{error::Error, path::Path};
 
