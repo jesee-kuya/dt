@@ -1,10 +1,8 @@
-// src/main.rs
-
 mod reader;
 mod decision_tree;
 
 use crate::reader::{read_records, DataRecord};
-use decision_tree::MultiTargetPredictor;
+use decision_tree::{MultiTargetPredictor, TreeParams};
 use serde::Serialize;
 use std::{error::Error, fs::File, path::Path};
 
@@ -34,14 +32,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     preprocess(&mut records);
     println!("Records after preprocessing: {}", records.len());
 
-    // 3. Train
-    let predictor = MultiTargetPredictor::build(&records);
-    println!("Trained multi-target predictor");
+    // 3. Set pruning parameters
+    let params = TreeParams {
+        max_depth: 8,
+        min_samples_leaf: 30,
+        min_gain_ratio: 0.01,
+    };
 
-    // 4. Demo
+    // 4. Train with pruning
+    let predictor = MultiTargetPredictor::build_with_params(&records, params);
+    println!("Trained pruned multi-target predictor");
+
+    // 5. Demo
     demo(&predictor);
 
-    // 5. Predict on test set
+    // 6. Predict on test set
     write_predictions(&predictor, Path::new("data/test.csv"), Path::new("predictions.csv"))?;
     println!("All done.");
 
